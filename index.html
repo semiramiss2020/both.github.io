@@ -1,0 +1,138 @@
+﻿
+<meta charset="utf-8">
+
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<style>
+
+    .link {
+        stroke: #aaa;
+    }
+
+    .node text {
+        stroke: #333;
+        cursor: pointer;
+    }
+
+    .node circle {
+        stroke: #fff;
+        stroke-width: 3px;
+        fill: #555;
+    }
+    /* ////////////////////////////// Added Classes //////////////////////////*/
+
+    .circleColorPalette1 {
+        fill: #f00 !important;
+        stroke: #0f0 !important;
+    }
+
+    .circleColorPalette2 {
+        fill: #00b !important;
+        stroke: #0f0 !important;
+    }
+
+    .circleColorPalette3 {
+        fill: #0f0 !important;
+        stroke: #0f0 !important;
+    }
+
+    .circleColorPalette4 {
+        fill: #ff0 !important;
+        stroke: #0f0 !important;
+    }
+
+    .nodeColor1 {
+        stroke: #00b !important;
+    }
+
+    .nodeColor2 {
+        stroke: #10e910 !important;
+    }
+
+    .nodeColor3 {
+        stroke: #000 !important;
+    }
+
+    .nodeColor4 {
+        stroke: #d80fa9 !important;
+    }
+
+
+    /* ////////////////////////////// Added Classes //////////////////////////*/
+
+</style>
+
+<body>
+
+</body>
+
+<script>
+
+
+    function initialGraph(fileName, svgElement) {
+        var width = 960,
+            height = 500
+
+        if (document.getElementById(svgElement) != undefined) {
+            var element = document.getElementById(svgElement);
+            element.parentNode.removeChild(element);
+        }
+
+        var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height).attr({ 'id': svgElement });
+
+        var force = d3.layout.force()
+            .gravity(.05)
+            .distance(100)
+            .charge(-100)
+            .size([width, height]);
+
+        d3.json(fileName, function (json) {
+            force
+                .nodes(json.nodes)
+                .links(json.links)
+                .start();
+
+            var link = svg.selectAll(".link")
+                .data(json.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .style("stroke-width", function (d) { return Math.sqrt(d.weight); });
+
+            var node = svg.selectAll(".node")
+                .data(json.nodes)
+                .enter().append("g")
+                .attr("class", function (d) { return d.nodeColor; })//Change Color
+                .call(force.drag);
+
+            node.append("circle")
+                .attr("r", "5");
+
+            ////////////////////////////// Added Code //////////////////////////
+            svg.selectAll("circle")
+                .data(json.nodes)
+                .attr("class", function (d) { return d.circleColor; }) //Change Color
+                .call(force.drag);
+            ////////////////////////////// Added Code //////////////////////////
+
+            node.append("text")
+                .attr("dx", 12)
+                .attr("dy", ".35em")
+                .text(function (d) { return d.name });
+
+            force.on("tick", function () {
+                link.attr("x1", function (d) { return d.source.x; })
+                    .attr("y1", function (d) { return d.source.y; })
+                    .attr("x2", function (d) { return d.target.x; })
+                    .attr("y2", function (d) { return d.target.y; });
+
+                node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+            });
+
+
+        });
+    }
+
+    initialGraph("Graph1.json", "svgId1");
+    initialGraph("Template.json", "svgId2");
+</script>
